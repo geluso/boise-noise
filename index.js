@@ -6,6 +6,9 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const app = express();
 
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.post('/sms', (req, res) => {
   const twiml = new MessagingResponse();
 
