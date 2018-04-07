@@ -13,6 +13,7 @@ const app = express();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.post('/sms', (req, res) => {
   const twiml = new MessagingResponse();
@@ -20,15 +21,17 @@ app.post('/sms', (req, res) => {
   let number = req.body.From;
   console.log('got:', number, req.body.Body);
 
-  Contact.find({number})
+  Contact.findOne({number})
   .then(contact => {
     if (contact === null) {
+      console.log('saving', contact);
       return Contact.create({number});
     }
+    console.log('found', contact);
     return contact;
   })
   .then(contact => {
-    console.log('created:', contact);
+    console.log('got:', contact);
     return Contact.find({});
   })
   .then(contacts => {
