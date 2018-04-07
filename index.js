@@ -18,7 +18,7 @@ app.post('/sms', (req, res) => {
   const twiml = new MessagingResponse();
 
   let number = req.body.From;
-  console.log('got', number, req.body.Body);
+  console.log('got:', number, req.body.Body);
 
   Contact.find({number})
   .then(contact => {
@@ -28,13 +28,14 @@ app.post('/sms', (req, res) => {
     return contact;
   })
   .then(contact => {
+    console.log('created:', contact);
     return Contact.find({});
   })
   .then(contacts => {
     contacts.forEach(contact => {
       console.log('contact:', contact.number);
       if (contact.number !== number) {
-        console.log('send to', contact.number);
+        console.log('send to:', contact.number);
         // client.messages
         // .create({
         //   to: contact.number,
