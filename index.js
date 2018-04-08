@@ -74,7 +74,7 @@ function configure(number, msg) {
   } else if (command.startsWith(".roll") || command.startsWith(".dice")) {
     roll(number);
   } else if (command.startsWith(".spin")) {
-    spinTheBottle(numbe);
+    spinTheBottle(number);
   }
 }
 
