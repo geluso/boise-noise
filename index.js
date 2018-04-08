@@ -73,7 +73,49 @@ function configure(number, msg) {
     setName(number, arg);
   } else if (command.startsWith(".roll") || command.startsWith(".dice")) {
     roll(number);
+  } else if (command.startsWith(".spin")) {
+    spinTheBottle(numbe);
   }
+}
+
+function spinTheBottle(number) {
+  Contact.find({})
+  .then(users => {
+    // pick a random person
+    let index = Math.floor(Math.random() * users.length);
+    let choice = users[index];
+
+    // see if it's themself
+    let user = choice.username;
+    if (choice.number === number) {
+      user = 'themself!';
+    }
+
+    let actions = [
+      'gets rejected by', 
+      'pecks', 
+      'kisses',
+      'kisses',
+      'kisses',
+      'kisses',
+      'giggles at',
+      'massages',
+      'deeply kisses',
+      'makes out with',
+      'slobbers all over',
+      'goes full tongue with',
+      'plays seven minutes in heaven with',
+      'marries',
+      'dates',
+      'dumps',
+    ];
+
+    index = Math.floor(Math.random() * actions.length);
+    action = actions[index];
+
+    let msg = `and ${action} ${user}`;
+    broadcast(number, msg, ".spins");
+  });
 }
 
 function roll(number) {
