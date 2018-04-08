@@ -40,7 +40,7 @@ app.post('/sms', (req, res) => {
 
 function help(from) {
   let msg = 'welcome to Boise Noise. sounds of Boise, Udaho. send something and everyone else will get it.';
-  let setUsername = 'reply ".name somename" to set your username';
+  let setUsername = 'reply ".name somename" to set your username. sorry, no pics yet.';
 
   client.messages
   .create({
