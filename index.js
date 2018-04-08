@@ -2,7 +2,9 @@ require('dotenv').config();
 
 const http = require('http');
 const express = require('express');
-const MessagingResponse = require('twilio').twiml.MessagingResponse;
+const Twilio = require('twilio');
+const client = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const MessagingResponse = Twilio.twiml.MessagingResponse;
 
 const mongoose = require('mongoose');
 mongoose.connect(process.env.MONGODB_URI);
@@ -16,55 +18,76 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.post('/sms', (req, res) => {
+  let from = req.body.From;
+  let msg = req.body.Body;
+
+  if (msg.length < 6 && msg.toLowerCase().startsWith("help")) {
+    help(from);
+  } else if (msg.startsWith(".")) {
+    configure(from, msg);
+  } else {
+    broadcast(from, msg);
+  }
+
+  // send an empty response
   const twiml = new MessagingResponse();
+  res.writeHead(200, {'Content-Type': 'text/xml'});
+  res.end(twiml.toString());
+});
 
-  let number = req.body.From;
-  console.log('got:', number, req.body.Body);
+function help(from) {
+  let msg = 'Boise Noise. sounds of Boise, Udaho. send something and everyone else will get it.';
 
+  client.messages
+  .create({
+    to: from,
+    from: process.env.TWILIO_NUMBER,
+    body: msg
+  })
+  .then(message => console.log(message.sid));
+}
+
+function configure(number, msg) {
+  let [command, arg]= msg.split(" ").toLowerCase();
+  if (command.startsWith("username")) {
+    // set someone's username
+    // restrict it to the first 8 char
+    let username = arg.substr(0, 8);
+    console.log('config', command, username);
+  }
+}
+
+function broadcast(number, msg) {
   Contact.findOne({number})
   .then(contact => {
     if (contact === null) {
-      console.log('saving', contact);
+      help(number);
       return Contact.create({number});
     }
-    console.log('found', contact);
     return contact;
   })
   .then(contact => {
-    console.log('got:', contact);
     return Contact.find({});
   })
   .then(contacts => {
     contacts.forEach(contact => {
-      console.log('contact:', contact.number);
       if (contact.number !== number) {
-        console.log('send to:', contact.number);
-        // client.messages
-        // .create({
-        //   to: contact.number,
-        //   from: process.env.TWILIO_NUMBER,
-        //   body: 'mass text',
-        // })
-        // .then(message => console.log(message.sid));
+        client.messages
+        .create({
+          to: contact.number,
+          from: process.env.TWILIO_NUMBER,
+          body: msg
+        })
+        .then(message => console.log(message.sid));
       }
     });
   })
   .catch(err => {
+    console.log('error:', err);
     res.status(500).send(err);
     return;
   });
-
-  if (req.body.Body == 'hello') {
-    twiml.message('hi!');
-  } else if(req.body.Body == 'bye') {
-    twiml.message('goodbye');
-  } else {
-    twiml.message('default response');
-  }
-
-  res.writeHead(200, {'Content-Type': 'text/xml'});
-  res.end(twiml.toString());
-});
+}
 
 app.get('*', (req, res) => {
   res.send('text (206) 900-9011');
