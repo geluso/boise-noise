@@ -86,6 +86,8 @@ function configure(number, msg) {
 }
 
 function broadcast(number, msg) {
+  let sender = undefined;
+
   Contact.findOne({number})
   .then(contact => {
     if (contact === null) {
@@ -95,6 +97,7 @@ function broadcast(number, msg) {
     return contact;
   })
   .then(contact => {
+    sender = contact;
     return Contact.find({});
   })
   .then(contacts => {
@@ -104,7 +107,7 @@ function broadcast(number, msg) {
         .create({
           to: contact.number,
           from: process.env.TWILIO_NUMBER,
-          body: msg
+          body: `${sender.username}: ${msg}`
         })
         .then(message => console.log(message.sid));
       }
