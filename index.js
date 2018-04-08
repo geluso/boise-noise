@@ -64,29 +64,46 @@ function help(from) {
 function configure(number, msg) {
   let [command, arg]= msg.split(" ");
   command = command.toLowerCase();
-  if (command.startsWith(".name") || command.startsWith(".setname")) {
-    // set someone's username
-    // restrict it to the first 8 char
-    let username = arg.substr(0, 8);
-    console.log('config', command, username);
 
-    Contact.findOne({number})
-    .then(user => {
-      user.username = username;
-      return user.save();
-    })
-    .then(user => {
-      return client.messages
-      .create({
-        to: number,
-        from: process.env.TWILIO_NUMBER,
-        body: `.name now= ${user.username}`
-      })
-    });
+  console.log('config', command, username);
+  if (command.startsWith(".name") || command.startsWith(".setname")) {
+    setName(number, arg);
+  } else if (command.startsWith(".roll")) {
+    roll(number);
   }
 }
 
-function broadcast(number, msg) {
+function roll(number) {
+  let roll = Math.floor(Math.random() * 9);
+  let result = '' + roll;
+  for (let i = 0; i < roll; i++) {
+    result += '=';
+  }
+  result += 'D';
+  broadcast(number, result, ".rolls");
+}
+
+function setName(number, arg) {
+  // set someone's username
+  // restrict it to the first 8 char
+  let username = arg.substr(0, 8);
+
+  Contact.findOne({number})
+  .then(user => {
+    user.username = username;
+    return user.save();
+  })
+  .then(user => {
+    return client.messages
+    .create({
+      to: number,
+      from: process.env.TWILIO_NUMBER,
+      body: `.name now= ${user.username}`
+    })
+  }); 
+}
+
+function broadcast(number, msg, legit) {
   let sender = undefined;
 
   Contact.findOne({number})
@@ -105,11 +122,16 @@ function broadcast(number, msg) {
   .then(contacts => {
     contacts.forEach(contact => {
       if (contact.number !== number) {
+        let body = `${sender.username}: ${msg}`;
+        if (legit) {
+          body = `${sender.username} ${legit}: ${msg}`;
+        }
+
         client.messages
         .create({
           to: contact.number,
           from: process.env.TWILIO_NUMBER,
-          body: `${sender.username}: ${msg}`
+          body: body,
         })
         .then(message => console.log(message.sid));
       }
