@@ -71,7 +71,7 @@ function configure(number, msg) {
   console.log('config', command, number);
   if (command.startsWith(".name") || command.startsWith(".setname")) {
     setName(number, arg);
-  } else if (command.startsWith(".roll")) {
+  } else if (command.startsWith(".roll") || command.startsWith(".dice")) {
     roll(number);
   }
 }
