@@ -9,7 +9,10 @@ const MessagingResponse = Twilio.twiml.MessagingResponse;
 const mongoose = require('mongoose');
 mongoose.connect(process.env.MONGODB_URI);
 
-const Contact = mongoose.model('Contact', {number: String});
+const Contact = mongoose.model('Contact', {
+  number: String,
+  username: {default: 'anon', type: String}
+});
 
 const app = express();
 
@@ -36,7 +39,8 @@ app.post('/sms', (req, res) => {
 });
 
 function help(from) {
-  let msg = 'Boise Noise. sounds of Boise, Udaho. send something and everyone else will get it.';
+  let msg = 'welcome to Boise Noise. sounds of Boise, Udaho. send something and everyone else will get it.';
+  let setUsername = 'reply ".name somename" to set your username';
 
   client.messages
   .create({
@@ -44,16 +48,40 @@ function help(from) {
     from: process.env.TWILIO_NUMBER,
     body: msg
   })
-  .then(message => console.log(message.sid));
+  .then(message => {
+    console.log(message.sid)
+  })
+  .then(() => {
+    return client.messages
+    .create({
+      to: from,
+      from: process.env.TWILIO_NUMBER,
+      body: setUsername
+    })
+  });
 }
 
 function configure(number, msg) {
-  let [command, arg]= msg.split(" ").toLowerCase();
-  if (command.startsWith("username")) {
+  let [command, arg]= msg.split(" ");
+  if (command.toLowerCase().startsWith(".name")) {
     // set someone's username
     // restrict it to the first 8 char
     let username = arg.substr(0, 8);
     console.log('config', command, username);
+
+    Contact.findOne({number})
+    .then(user => {
+      user.username = username;
+      return user.save();
+    })
+    .then(user => {
+      return client.messages
+      .create({
+        to: number,
+        from: process.env.TWILIO_NUMBER,
+        body: `.name now= ${user.username}`
+      })
+    });
   }
 }
 
