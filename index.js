@@ -92,7 +92,8 @@ function broadcast(number, msg) {
   .then(contact => {
     if (contact === null) {
       help(number);
-      return Contact.create({number});
+      let username = 'anon' + ('' + Math.random()).substr(2, 4);
+      return Contact.create({number, username});
     }
     return contact;
   })
