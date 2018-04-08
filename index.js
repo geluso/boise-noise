@@ -121,7 +121,7 @@ function broadcast(number, msg, legit) {
   })
   .then(contacts => {
     contacts.forEach(contact => {
-      if (contact.number !== number) {
+      if (legit || contact.number !== number) {
         let body = `${sender.username}: ${msg}`;
         if (legit) {
           body = `${sender.username} ${legit}: ${msg}`;
