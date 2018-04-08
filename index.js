@@ -65,7 +65,7 @@ function configure(number, msg) {
   let [command, arg]= msg.split(" ");
   command = command.toLowerCase();
 
-  console.log('config', command, username);
+  console.log('config', command, number);
   if (command.startsWith(".name") || command.startsWith(".setname")) {
     setName(number, arg);
   } else if (command.startsWith(".roll")) {
