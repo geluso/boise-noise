@@ -14,6 +14,9 @@ const Contact = mongoose.model('Contact', {
   username: {default: 'anon', type: String}
 });
 
+var messageSchema = new mongoose.Schema({text: String}, {timestamps: {createdAt: 'created_at'}});
+const Message = mongoose.model('Message', messageSchema);
+
 const app = express();
 
 const bodyParser = require('body-parser');
@@ -121,12 +124,17 @@ function broadcast(number, msg, legit) {
   })
   .then(contacts => {
     contacts.forEach(contact => {
-      if (legit || contact.number !== number) {
-        let body = `${sender.username}: ${msg}`;
-        if (legit) {
-          body = `${sender.username} ${legit}: ${msg}`;
-        }
+      // format the message
+      let body = `${sender.username}: ${msg}`;
+      if (legit) {
+        body = `${sender.username} ${legit}: ${msg}`;
+      }
 
+      // log everything!
+      Message.create({text: body});
+
+      // send it to everyone else, unless result of something legit
+      if (legit || contact.number !== number) {
         client.messages
         .create({
           to: contact.number,
