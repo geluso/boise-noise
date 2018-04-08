@@ -123,16 +123,16 @@ function broadcast(number, msg, legit) {
     return Contact.find({});
   })
   .then(contacts => {
+    // format the message
+    let body = `${sender.username}: ${msg}`;
+    if (legit) {
+      body = `${sender.username} ${legit}: ${msg}`;
+    }
+
+    // log everything!
+    Message.create({text: body});
+
     contacts.forEach(contact => {
-      // format the message
-      let body = `${sender.username}: ${msg}`;
-      if (legit) {
-        body = `${sender.username} ${legit}: ${msg}`;
-      }
-
-      // log everything!
-      Message.create({text: body});
-
       // send it to everyone else, unless result of something legit
       if (legit || contact.number !== number) {
         client.messages
