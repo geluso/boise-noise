@@ -153,7 +153,26 @@ function broadcast(number, msg, legit) {
 }
 
 app.get('*', (req, res) => {
-  res.send('text (206) 900-9011');
+  res.write('<title>Boise Noise</title>');
+  res.write('<h1>Boise Noise</h1>');
+  res.write('<p>text (206) 900-9011</p>');
+  Message.find({})
+  .then(messages => {
+    res.status(200);
+    res.write('<table>');
+      if (messages.length > 80) {
+        messages.reverse();
+      }
+      messages.forEach(msg => {
+        res.write('<tr>');
+          res.write('<td>');
+            res.write(msg.text);
+          res.write('</td>');
+        res.write('</tr>');
+      });
+    res.write('</table>');
+    res.end();
+  });
 });
 
 const PORT = process.env.PORT;
