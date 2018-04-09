@@ -182,7 +182,6 @@ function broadcast(number, msg, imgUrl, legit) {
     contacts.forEach(contact => {
       // send it to everyone else, unless result of something legit
       if (legit || contact.number !== number) {
-        client.messages
         params = {
           to: contact.number,
           from: process.env.TWILIO_NUMBER,
@@ -193,6 +192,7 @@ function broadcast(number, msg, imgUrl, legit) {
           params.mediaUrl = imgUrl;
         }
 
+        client.messages
         .create(params)
         .then(message => console.log(message.sid));
       }
