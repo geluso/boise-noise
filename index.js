@@ -27,6 +27,10 @@ app.post('/sms', (req, res) => {
   let from = req.body.From;
   let msg = req.body.Body;
 
+  console.log('body', req.body);
+  console.log('MediaUrl', req.body.MediaUrl);
+  console.log('MediaUrl0', req.body.MediaUrl0);
+
   if (msg.length < 6 && msg.toLowerCase().startsWith("help")) {
     help(from);
   } else if (msg.startsWith(".")) {
