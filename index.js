@@ -27,16 +27,17 @@ app.post('/sms', (req, res) => {
   let from = req.body.From;
   let msg = req.body.Body;
 
-  console.log('body', req.body);
-  console.log('MediaUrl', req.body.MediaUrl);
-  console.log('MediaUrl0', req.body.MediaUrl0);
-
   if (msg.length < 6 && msg.toLowerCase().startsWith("help")) {
     help(from);
   } else if (msg.startsWith(".")) {
     configure(from, msg);
   } else {
-    broadcast(from, msg);
+    let imgUrl = null;
+    if (req.body.MediaUrl0) {
+      imgUrl = req.body.MediaUrl0;
+    }
+
+    broadcast(from, msg, imgUrl);
   }
 
   // send an empty response
@@ -118,7 +119,7 @@ function spinTheBottle(number) {
     action = actions[index];
 
     let msg = `and ${action} ${user}`;
-    broadcast(number, msg, ".spins");
+    broadcast(number, msg, null, ".spins");
   });
 }
 
@@ -129,7 +130,7 @@ function roll(number) {
     result += '=';
   }
   result += 'D';
-  broadcast(number, result, ".rolls");
+  broadcast(number, result, null, ".rolls");
 }
 
 function setName(number, arg) {
@@ -152,7 +153,7 @@ function setName(number, arg) {
   }); 
 }
 
-function broadcast(number, msg, legit) {
+function broadcast(number, msg, imgUrl, legit) {
   let sender = undefined;
 
   Contact.findOne({number})
@@ -182,11 +183,17 @@ function broadcast(number, msg, legit) {
       // send it to everyone else, unless result of something legit
       if (legit || contact.number !== number) {
         client.messages
-        .create({
+        params = {
           to: contact.number,
           from: process.env.TWILIO_NUMBER,
           body: body,
-        })
+        };
+
+        if (imgUrl) {
+          params.mediaUrl = imgUrl;
+        }
+
+        .create(params)
         .then(message => console.log(message.sid));
       }
     });
