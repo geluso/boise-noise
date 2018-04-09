@@ -33,6 +33,7 @@ app.post('/sms', (req, res) => {
     configure(from, msg);
   } else {
     let imgUrl = null;
+    console.log('received', req.body);
     if (req.body.MediaUrl0) {
       imgUrl = req.body.MediaUrl0;
     }
@@ -192,6 +193,7 @@ function broadcast(number, msg, imgUrl, legit) {
           params.mediaUrl = imgUrl;
         }
 
+        console.log('send params', params);
         client.messages
         .create(params)
         .then(message => console.log(message.sid));
