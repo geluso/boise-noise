@@ -123,7 +123,7 @@ function listChannels(number) {
     console.log('list:', msg);
     client.messages
     .create({
-      to: from,
+      to: number,
       from: process.env.TWILIO_NUMBER,
       body: msg
     });
