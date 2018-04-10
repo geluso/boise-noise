@@ -121,7 +121,6 @@ function listChannels(number) {
     msg = msg.trim();
   
     console.log('list:', msg);
-    return
     client.messages
     .create({
       to: from,
