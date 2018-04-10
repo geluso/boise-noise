@@ -73,9 +73,7 @@ function help(from) {
 
 function configure(number, msg) {
   let [command, ...rest] = msg.split(" ");
-  if (rest.length === 1) {
-    rest = rest[0];
-  }
+  rest = rest.join(" ");
   command = command.toLowerCase();
 
   console.log('config', command, number);
@@ -99,7 +97,7 @@ function configure(number, msg) {
 }
 
 function emote(number, text) {
-  broadcast(number, text, null, false, text);
+  broadcast(number, text, null, true, text);
 }
 
 function listChannels(number) {
