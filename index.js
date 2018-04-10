@@ -72,25 +72,34 @@ function help(from) {
 }
 
 function configure(number, msg) {
-  let [command, arg] = msg.split(" ");
+  let [command, ...rest] = msg.split(" ");
+  if (rest.length === 1) {
+    rest = rest[0];
+  }
   command = command.toLowerCase();
 
   console.log('config', command, number);
   if (command.startsWith(".name") || command.startsWith(".setname")) {
-    setName(number, arg);
+    setName(number, rest);
   } else if (command.startsWith(".roll") || command.startsWith(".dice")) {
     roll(number);
   } else if (command.startsWith(".spin")) {
     spinTheBottle(number);
   } else if (command.startsWith(".join")) {
-    joinChannel(number, arg);
+    joinChannel(number, rest);
   } else if (command.startsWith(".list")) {
     listChannels(number);
+  } else if (command.startsWith(".emote")) {
+    emote(number, rest);
   } else if (command.startsWith(".whereami")) {
     // TODO
   } else if (command.startsWith(".whoami")) {
     // TODO
   }
+}
+
+function emote(number, text) {
+  broadcast(number, text, null, false, text);
 }
 
 function listChannels(number) {
@@ -212,7 +221,7 @@ function setName(number, arg) {
   }); 
 }
 
-function broadcast(number, msg, imgUrl, legit) {
+function broadcast(number, msg, imgUrl, legit, customMsg) {
   let sender = undefined;
 
   Contact.findOne({number})
@@ -238,8 +247,13 @@ function broadcast(number, msg, imgUrl, legit) {
       body = `${sender.username} ${legit}: ${msg}`;
     }
 
+    if (customMsg) {
+      body = `${sender.username} ${customMsg}`;
+    }
+
     // log everything!
     Message.create({text: body});
+    console.log('sending', body);
 
     contacts.forEach(contact => {
       // send it to everyone else, unless result of something legit
@@ -264,7 +278,6 @@ function broadcast(number, msg, imgUrl, legit) {
   .catch(err => {
     console.log('error:', err);
     res.status(500).send(err);
-    return;
   });
 }
 
