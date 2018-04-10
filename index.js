@@ -11,7 +11,8 @@ mongoose.connect(process.env.MONGODB_URI);
 
 const Contact = mongoose.model('Contact', {
   number: String,
-  username: {default: 'anon', type: String}
+  username: {default: 'anon', type: String},
+  channel: {default: 'lobby', type: String}
 });
 
 var messageSchema = new mongoose.Schema({text: String}, {timestamps: {createdAt: 'created_at'}});
@@ -71,7 +72,7 @@ function help(from) {
 }
 
 function configure(number, msg) {
-  let [command, arg]= msg.split(" ");
+  let [command, arg] = msg.split(" ");
   command = command.toLowerCase();
 
   console.log('config', command, number);
@@ -81,7 +82,64 @@ function configure(number, msg) {
     roll(number);
   } else if (command.startsWith(".spin")) {
     spinTheBottle(number);
+  } else if (command.startsWith(".join")) {
+    joinChannel(number, arg);
+  } else if (command.startsWith(".list")) {
+    listChannels(number);
+  } else if (command.startsWith(".whereami")) {
+    // TODO
+  } else if (command.startsWith(".whoami")) {
+    // TODO
   }
+}
+
+function listChannels(number) {
+  Contact.find({})
+  .then(contacts => {
+    let channelCount = contacts.reduce((tally, user) => {
+      if (tally[user.channel] === undefined) {
+        tally[user.channel] = 0;
+      }
+      tally[user.channel]++;
+      return tally;
+    }, {});
+
+    let msg = '';
+    Object.entries(channelCount).forEach(entry => {
+      let key = entry[0];
+      let val = entry[1];
+      msg += `(${val}) ${key}\n`;
+    });
+
+    msg = msg.trim();
+  
+    console.log('list:', msg);
+    return
+    client.messages
+    .create({
+      to: from,
+      from: process.env.TWILIO_NUMBER,
+      body: msg
+    });
+  });
+}
+
+function joinChannel(number, channelName) {
+  Contact.findOne({number})
+  .then(contact => {
+    contact.channel = channelName;
+    return contact.save();
+  })
+  .then(() => {
+    let msg = 'you joined channel: ' + channelName;
+
+    client.messages
+    .create({
+      to: number,
+      from: process.env.TWILIO_NUMBER,
+      body: msg
+    });
+  });
 }
 
 function spinTheBottle(number) {
@@ -168,7 +226,10 @@ function broadcast(number, msg, imgUrl, legit) {
   })
   .then(contact => {
     sender = contact;
-    return Contact.find({});
+    // limit contacts to people in the same channel
+    return Contact.find({
+      channel: sender.channel
+    });
   })
   .then(contacts => {
     // format the message
