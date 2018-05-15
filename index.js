@@ -34,7 +34,7 @@ app.post('/sms', (req, res) => {
     params = {
       to: '15095541122',
       from: process.env.TWILIO_NUMBER,
-      body: body,
+      body: msg,
     };
 
     console.log('sending to phone', params);
