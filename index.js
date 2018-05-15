@@ -1,3 +1,5 @@
+const ONLY_MIRROR_TO_ME = true;
+
 require('dotenv').config();
 
 const http = require('http');
@@ -27,6 +29,20 @@ app.use(bodyParser.json());
 app.post('/sms', (req, res) => {
   let from = req.body.From;
   let msg = req.body.Body;
+
+  if (ONLY_MIRROR_TO_ME) {
+    params = {
+      to: '15095541122',
+      from: process.env.TWILIO_NUMBER,
+      body: body,
+    };
+
+    console.log('sending to phone', params);
+    client.messages
+    .create(params)
+    .then(message => console.log(message.sid));
+    return;
+  }
 
   if (msg.length < 6 && msg.toLowerCase().startsWith("help")) {
     help(from);
